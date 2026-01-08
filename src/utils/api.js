@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /**
  * API utility for making backend API calls
  */
@@ -604,17 +605,34 @@ export const api = {
     });
   },
 
-  /**
-   * Create a community
-   * @param {Object} data - Community data (name, description, category, isPublic, etc.)
-   * @returns {Promise<Object>} - { message, community }
-   */
-  createCommunity: async (data) => {
-    return apiRequest('/api/create-community', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
+  // /**
+  //  * Create a community
+  //  * @param {Object} data - Community data (name, description, category, isPublic, etc.)
+  //  * @returns {Promise<Object>} - { message, community }
+  //  */
+  // createCommunity: async (data) => {
+  //   return apiRequest('/api/create-community', {
+  //     method: 'POST',
+  //     body: JSON.stringify(data),
+  //   });
+  // },
+/**
+ * Create a community
+ * Supports JSON OR multipart/form-data (thumbnail upload)
+ */
+createCommunity: async (data) => {
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+
+  return apiRequest("/api/create-community", {
+    method: "POST",
+    body: isFormData ? data : JSON.stringify(data),
+    headers: isFormData
+      ? undefined // ✅ DO NOT set Content-Type for FormData (browser will set boundary)
+      : { "Content-Type": "application/json" },
+  });
+},
+
+
 
   /**
    * Update a community
