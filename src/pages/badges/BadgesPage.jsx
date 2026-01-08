@@ -11,6 +11,8 @@ import { api } from "../../utils/api";
 import BadgeOverviewTable from "../../components/badges/BadgeOverviewTable";
 import BadgeFormModal from "../../components/badges/BadgeFormModal";
 
+const resolveBadgeIcon = (badge) => badge?.icon || badge?.iconUrl || "";
+
 const BadgesPage = () => {
   const [badges, setBadges] = React.useState([]);
   const [metrics, setMetrics] = React.useState(null);
@@ -48,7 +50,7 @@ const BadgesPage = () => {
         earnedByUsers: 0, // Will be calculated if needed
         progress: 0, // Will be calculated if needed
         status: 'active', // Default since not in DB model
-        iconUrl: badge.icon || badge.iconUrl || '',
+        iconUrl: resolveBadgeIcon(badge),
         description: badge.description || '',
         _original: badge, // Keep original for API calls
       }));
@@ -145,6 +147,7 @@ const BadgesPage = () => {
   const handleEditBadge = (badge) => {
     setFormMode("edit");
     const original = badge._original || badge;
+    const resolvedIcon = resolveBadgeIcon(badge) || resolveBadgeIcon(original);
     setEditingBadge({
       id: badge.id,
       title: badge.name || original.name || '',
@@ -153,7 +156,7 @@ const BadgesPage = () => {
       badgeType: (badge.type || 'milestone').toLowerCase(),
       unlockCriteria: "Complete related activities to earn this badge.",
       status: badge.status || 'active',
-      iconUrl: badge.iconUrl || original.icon || original.iconUrl || "",
+      iconUrl: resolvedIcon,
     });
     setFormOpen(true);
   };
@@ -194,6 +197,7 @@ const BadgesPage = () => {
         
         if (response.message || response.badge) {
           // Add new badge to state
+          const resolvedIcon = resolveBadgeIcon(response.badge);
           const newBadge = {
             id: response.badge._id || response.badge.id,
             name: response.badge.name || values.title,
@@ -202,7 +206,7 @@ const BadgesPage = () => {
             earnedByUsers: 0,
             progress: 0,
             status: values.status || 'active',
-            iconUrl: response.badge.icon || response.badge.iconUrl || '',
+            iconUrl: resolvedIcon,
             description: response.badge.description || values.description,
             _original: response.badge,
           };
@@ -226,13 +230,29 @@ const BadgesPage = () => {
         }
       } else if (formMode === "edit" && editingBadge?.id) {
         // Update badge via API
-        const badgeData = {
-          name: values.title,
-          description: values.description || '',
-          category: values.learningArea || 'general',
-        };
+        const badgeData = {};
+        const trimmedTitle = values.title.trim();
+        const currentDescription = values.description || '';
+        const currentCategory = values.learningArea || 'general';
+        const originalTitle = editingBadge.title || '';
+        const originalDescription = editingBadge.description || '';
+        const originalCategory = editingBadge.learningArea || '';
+
+        if (trimmedTitle !== originalTitle.trim()) {
+          badgeData.name = trimmedTitle;
+        }
+        if (currentDescription !== originalDescription) {
+          badgeData.description = currentDescription;
+        }
+        if (currentCategory !== originalCategory) {
+          badgeData.category = currentCategory;
+        }
         
-        const response = await api.updateBadge(editingBadge.id, badgeData);
+        const response = await api.updateBadge(
+          editingBadge.id,
+          badgeData,
+          values.iconFile
+        );
         
         if (response.message || response.badge) {
           // Update badge in state
@@ -241,12 +261,13 @@ const BadgesPage = () => {
               b.id === editingBadge.id
                 ? {
                     ...b,
-                    name: response.badge.name || values.title,
-                    category: response.badge.category || values.learningArea,
+                    id: response.badge._id || response.badge.id || b.id,
+                    name: response.badge.name ?? b.name,
+                    category: response.badge.category ?? b.category,
                     type: values.badgeType || b.type,
                     status: values.status || b.status,
-                    description: response.badge.description || values.description,
-                    iconUrl: response.badge.icon || response.badge.iconUrl || b.iconUrl,
+                    description: response.badge.description ?? b.description,
+                    iconUrl: resolveBadgeIcon(response.badge) || b.iconUrl,
                     _original: response.badge,
                   }
                 : b
@@ -261,7 +282,11 @@ const BadgesPage = () => {
       }
     } catch (err) {
       console.error('Error saving badge:', err);
-      alert(err.message || 'Failed to save badge. Please try again.');
+      const errorMessage =
+        err?.status === 400 && err?.message?.includes('File upload failed')
+          ? err.message
+          : err.message || 'Failed to save badge. Please try again.';
+      alert(errorMessage);
       throw err; // Re-throw so form can handle loading state
     }
   };
