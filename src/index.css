@@ -1,0 +1,100 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+/* Global theme */
+
+:root {
+  color: #0f172a;
+  background-color: #f8fafc;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply font-sans antialiased text-slate-900 m-0 min-h-screen;
+  }
+
+  h1 {
+    @apply font-semibold text-[24px] leading-tight tracking-tight;
+  }
+
+  h2 {
+    @apply font-semibold text-[20px] leading-snug tracking-tight;
+  }
+
+  h3 {
+    @apply font-semibold text-[16px] leading-snug tracking-tight;
+  }
+
+  h4 {
+    @apply font-medium text-[14px] leading-snug tracking-tight;
+  }
+
+  p,
+  span,
+  li,
+  button,
+  input,
+  label {
+    @apply text-[13px] leading-relaxed;
+  }
+
+  small {
+    @apply text-[11px] leading-snug text-slate-500;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Smooth scroll & subtle scrollbars */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optional: pastel gradient helper if you want it outside components */
+.luumilo-shell {
+  background-image: linear-gradient(
+    135deg,
+    #ffe4c8 0%,
+    #ffd6ea 50%,
+    #ffe4f5 100%
+  );
+}
+
+/* Hide scrollbars when we still need scrolling (e.g., modals) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar styling for chart legends */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
